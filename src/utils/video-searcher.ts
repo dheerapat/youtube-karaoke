@@ -1,5 +1,5 @@
 import {youtube_v3} from 'googleapis';
-import {inject, injectable, registry} from 'tsyringe';
+import {inject, injectable} from 'inversify';
 import {IYouTubeClient, YouTubeClient} from './shared/youtube-client';
 import {IChannelIdFetcher, YouTubeChannelIdFetcher} from './channel-id-fetcher';
 
@@ -14,19 +14,15 @@ export interface IVideoSearcher {
 }
 
 @injectable()
-@registry([
-  {token: 'YouTubeClient', useClass: YouTubeClient},
-  {token: 'YouTubeChannelIdFetcher', useClass: YouTubeChannelIdFetcher},
-])
 export class YouTubeKaraokeVideoSearcher implements IVideoSearcher {
   private channels = process.env.CHANNEL_HANDLE
     ? process.env.CHANNEL_HANDLE.split(',')
     : [];
 
   constructor(
-    @inject('YouTubeClient') private readonly youtubeClient: IYouTubeClient,
-    @inject('YouTubeChannelIdFetcher')
-    private readonly channelIdFetcher: IChannelIdFetcher
+    @inject(YouTubeClient) private readonly youtubeClient: IYouTubeClient,
+    @inject(YouTubeChannelIdFetcher)
+    private readonly channelIdFetcher: IChannelIdFetcher,
   ) {}
 
   public async searchVideo(queryString: string): Promise<Video[]> {
@@ -59,7 +55,7 @@ export class YouTubeKaraokeVideoSearcher implements IVideoSearcher {
 
   private parseSearchResult(
     items: youtube_v3.Schema$SearchResult[] | undefined,
-    channelIds: string[]
+    channelIds: string[],
   ): Video[] {
     if (!items) {
       return [];
@@ -67,7 +63,7 @@ export class YouTubeKaraokeVideoSearcher implements IVideoSearcher {
 
     const targets = items.filter(
       item =>
-        item.snippet?.channelId && channelIds.includes(item.snippet.channelId)
+        item.snippet?.channelId && channelIds.includes(item.snippet.channelId),
     );
 
     return targets.map(target => {
@@ -75,7 +71,7 @@ export class YouTubeKaraokeVideoSearcher implements IVideoSearcher {
         videoUrl: this.createVideoUrl(target.id?.videoId),
         title: target.snippet?.title || '',
         thumbnailUrl: this.createThumbnailUrl(
-          target.snippet?.thumbnails?.high?.url
+          target.snippet?.thumbnails?.high?.url,
         ),
       };
     });

@@ -1,11 +1,11 @@
 import {google, youtube_v3} from 'googleapis';
-import {singleton} from 'tsyringe';
+import {injectable} from 'inversify';
 
 export interface IYouTubeClient {
   client: youtube_v3.Youtube;
 }
 
-@singleton()
+@injectable()
 export class YouTubeClient implements IYouTubeClient {
   public client: youtube_v3.Youtube;
 

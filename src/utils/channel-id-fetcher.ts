@@ -1,5 +1,5 @@
 import {youtube_v3} from 'googleapis';
-import {inject, injectable, registry} from 'tsyringe';
+import {inject, injectable} from 'inversify';
 import {IYouTubeClient, YouTubeClient} from './shared/youtube-client';
 
 export interface IChannelIdFetcher {
@@ -7,10 +7,9 @@ export interface IChannelIdFetcher {
 }
 
 @injectable()
-@registry([{token: 'YouTubeClient', useClass: YouTubeClient}])
 export class YouTubeChannelIdFetcher implements IChannelIdFetcher {
   constructor(
-    @inject('YouTubeClient') private readonly youtubeClient: IYouTubeClient
+    @inject(YouTubeClient) private readonly youtubeClient: IYouTubeClient,
   ) {
     if (!this.youtubeClient) {
       throw new Error('YouTubeClient not initialized');
